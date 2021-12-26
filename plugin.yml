@@ -1,38 +1,34 @@
 ---
 name: JailMate
-version: 1.1.3
+version: 1.1.7
 main: J0k3rrWild\JailMate\Main
 api: 3.25.1
 website: https://github.com/J0k3rrWild/
 author: J0k3rrWild
 commands:
  jail:
-  description: Zatrzymuje gracza z rozgrywki
+  description: Arrests the player
   permission: jail.command.jail
   usage: /jail <nick> | /unjail <nick> | /setjail confirm
  unjail:
-  description: Gracz opuszcza przesluchanie
+  description: Unjail player
   permission: jail.command.unjail
   usage: /jail <nick> | /unjail <nick> | /setjail confirm
  setjail:
-  description: Ustanawia miejsce aresztu
+  description: Set jail position
   permission: jail.command.setjail
   usage: /jail <nick> | /unjail <nick> | /setjail confirm
 permissions:
   jail:
     default: op
-    description: Daje uprawnienia do wszystkich komend aresztu
-    children:
-      jail.setjail:
-        default: op
-        description: Daje uprawnienia miejsca do ustanowienia aresztu
-        children:
-         jail.jail:
-          default: op
-          description: Daje uprawnienia do wypuszczania aresztu oraz aresztowania
-          children:
-            jail.bypass:
-             default: op
-             description: Daje veto w przypadku wymuszenia aresztowania
-
+    description: Gives authority to all arrest commands
+  jail.setjail:
+    default: op
+    description: It gives the powers of the place to establish an arrest
+  jail.jail:
+    default: op
+    description: It gives you the power to release from arrest and arrest others
+  jail.bypass:
+    default: op
+    description: Gives power to bypass aresst
 ...
