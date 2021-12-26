@@ -11,6 +11,7 @@ use pocketmine\event\Listener;
 use pocketmine\level\Position;
 use pocketmine\utils\Config;
 use pocketmine\utils\TextFormat as TF;
+use pocketmine\Player;
 
 //events
 use pocketmine\event\player\PlayerMoveEvent;
@@ -37,7 +38,7 @@ public $cfg;
         $this->cfg = $this->getDataFolder() . 'players.json';
         $json = file_get_contents($this->cfg);
         $this->deco = json_decode($json, true);
-        $this->getLogger()->info(TF::GREEN."[MateJail] > Plugin oraz konfiguracja zostały załadowane pomyślnie");
+        $this->getLogger()->info(TF::GREEN."[JailMate] > Plugin and configuration have been successfully loaded");
         // array_push($deco, "ez");
         // $imp = implode(",", $deco);
         
@@ -56,20 +57,27 @@ public $cfg;
                 
              if($p->hasPermission("jail.jail") || $p->hasPermission("jail")){  
                 if($player = $this->getServer()->getPlayer($args[0])){
-                
-                
+
+                $conf = $this->getConfig();
+                $getx = $conf->get("jail-X");
+
                 if($p===$player){
-                    $p->sendMessage(TF::RED."[MeetMate] > Nie możesz aresztować samego siebie");
+                    $p->sendMessage(TF::RED."[JailMate] > You can't arrest yourself");
                     break;
                 }
 
                 if($player->hasPermission("jail.bypass") || $player->hasPermission("jail")){
-                    $p->sendMessage(TF::RED."[MeetMate] > Nie możesz aresztować gracza ".$player->getName()." ponieważ posiada veto");
+                    $p->sendMessage(TF::RED."[JailMate] > You cannot arrest a player ".$player->getName());
                     break;
+                }
+
+                if(($getx === NULL) || ($getx === false)){
+                    $p->sendMessage(TF::RED."[JailMate] > There is no set up arrest postition");
+                    return true;
                 }
                
                 if(in_array($player->getName(), $this->deco)){
-                    $p->sendMessage(TF::RED."[MeetMate] > Gracz jest już aktualnie ubezwłasnowlniony!");
+                    $p->sendMessage(TF::RED."[JailMate] > The player is currently incapacitated!");
                     break;
                 }else{
                      //Save jailed player to array and config
@@ -78,46 +86,53 @@ public $cfg;
                     
                 }
                     //Get jail pos
-                    $conf = $this->getConfig();
-                    $getx = $conf->get("jail-X");
+                    
+                    
                     $gety = $conf->get("jail-Y");
                     $getz = $conf->get("jail-Z");
-                    $level = $player->getLevel();
+                    $level = $conf->get("world");
 
-                    $tp = new Position($getx, $gety, $getz, $level);
+                    $tp = new Position($getx, $gety, $getz, $this->getServer()->getLevelByName($level));
                     $player->teleport($tp);
-                    $player->addTitle(TF::RED."UWAGA!", "Twoja rozgrywka została zatrzymana", 50, 100, 50);
-                    $p->sendMessage(TF::GREEN."[MeetMate] > Rozgrywka gracza ".$player->getName()." została zatrzymana, teleportuj sie do gracza by poddać go przesłuchaniu");
-                    $player->sendMessage(TF::RED."[MeetMate] > Twoja rozgrywka została zatrzymana, wykonuj polecenia administratora sprawdzającego.");
+                    $player->sendTitle(TF::RED."WARNING!", "Your gameplay has been stopped", 50, 100, 50);
+                    $p->sendMessage(TF::GREEN."[JailMate] > Gameplay player ".$player->getName()." has been stopped, teleport to the player to be interrogated");
+                    $player->sendMessage(TF::RED."[JailMate] > Your gameplay has been stopped, follow the instructions of the checking administrator.");
                     }else{
-                        $p->sendMessage(TF::RED."[MeetMate] > Gracz jest offline lub niepoprawny nick");
+                        $p->sendMessage(TF::RED."[JailMate] > Player is offline or nickname incorrect");
                     }
              }else{
-                 $p->sendMessage(TF::RED."[MeetMate] > Nie masz uprawnień by używać tej komendy");
+                $p->sendMessage(TF::RED."[JailMate] > You are not authorized to use this command!");
              }
                     break;
             case "setjail":
                 
              if($p->hasPermission("jail.setjail") || $p->hasPermission("jail")){
               if($args[0]==="confirm"){
+
+                if(!($p instanceof Player)){
+                    $p->sendMessage(TF::RED."[JailMate] > You cannot set spawn while in the console!");
+                    return false;
+                }
                 
-                // $p->sendMessage(TF::RED."[JailMate] > Nie możesz ustawić spawnu będąc w konsoli!");
+             
         
                 $conf = $this->getConfig();
                 $getx = round($p->getX());
                 $gety = round($p->getY());
                 $getz = round($p->getZ());
+                $level = $p->getLevel()->getName();
                     
                 $conf->set("jail-X", $getx);
                 $conf->set("jail-Y", $gety);
                 $conf->set("jail-Z", $getz);
+                $conf->set("world", $level);
                 $conf->save();
-                $p->sendMessage(TF::GREEN."[MeetMate] > Ustawiono areszt na pozycji X:{$getx}/Y:{$gety}/Z:{$getz}");
-              }else{
-                $p->sendMessage(TF::RED."[JailMate] > Musisz potwierdzić ustanowienie nowego spawnu, wpisz /setjail confirm");
+                $p->sendMessage(TF::GREEN."[JailMate] > The arrest was setted in position X:{$getx}/Y:{$gety}/Z:{$getz} World: $level");
+        }else{
+        $p->sendMessage(TF::RED."[JailMate] > You need to confirm the establishment of a new arrest spawn, enter /setjail confirm");
               }
              }else{
-                $p->sendMessage(TF::RED."[JailMate] > Nie masz uprawnień by używać tej komendy");
+                $p->sendMessage(TF::RED."[JailMate] > You are not authorized to use this command!");
              }
              break;
             case "unjail":
@@ -129,10 +144,11 @@ public $cfg;
                     $json = file_get_contents($this->cfg);
                     $this->deco = json_decode($json, true);
                     $player->teleport($player->getLevel()->getSafeSpawn());
-                    $p->sendMessage(TF::GREEN."[MeetMate] > Gracz został wypuszczony z aresztu");
-                    $player->sendMessage(TF::GREEN."[MeetMate] > Administrator wypuścił cię ze przesłuchania");
+                    $p->sendMessage(TF::GREEN."[JailMate] > The player has been released from arrest");
+                    $player->sendMessage(TF::GREEN."[JailMate] > The administrator released you from the arrest!");
             }else{
-                $p->sendMessage(TF::RED."[MeetMate] > Gracz nie jest aresztowany!");
+                $p->sendMessage(TF::RED."[JailMate] > The player is not under arrest!");
+            
             }
          }
          break;
@@ -145,7 +161,7 @@ public $cfg;
 
     public function onMoveJailed(PlayerMoveEvent $e){
         if(in_array($e->getPlayer()->getName(), $this->deco)){
-            $e->getPlayer()->addActionBarMessage(TF::RED."Nie możesz się ruszać podczas przesłuchania");
+            $e->getPlayer()->sendActionBarMessage(TF::RED."You cannot move during the interrogation");
             $e->setCancelled(true);
 
         }
@@ -154,7 +170,7 @@ public $cfg;
 
     public function onCommandJailed(PlayerCommandPreprocessEvent $e){
         if(in_array($e->getPlayer()->getName(), $this->deco)){
-            $e->getPlayer()->sendMessage(TF::RED."[MeetMate] > Nie możesz używać komend podczas przesłuchania");
+            $e->getPlayer()->sendMessage(TF::RED."[JailMate] > You cannot use commands during questioning");
             $command = explode(" ", strtolower($e->getMessage()));
             $this->acronym = "";
             foreach ($command as $w) {
@@ -173,7 +189,7 @@ public $cfg;
     public function RageQuitBan(PlayerQuitEvent $e){
         if(in_array($e->getPlayer()->getName(), $this->deco)){
            $player = $e->getPlayer();
-           $this->getServer()->broadcastmessage(TF::GREEN."[MeetMate] > Gracz ".$player->getName()." wyszedł podczas przesłuchania co skutkuje banem.");
+           $this->getServer()->broadcastmessage(TF::GREEN."[JailMate] > Left ".$player->getName()." left during the interrogation, which results in a ban.");
           
            $new = array_diff($this->deco, array($player->getName()));
            file_put_contents($this->cfg, json_encode($new));
@@ -188,7 +204,7 @@ public $cfg;
 
     public function onPlayerJailedItemDrop(PlayerDropItemEvent $e){
         if(in_array($e->getPlayer()->getName(), $this->deco)){
-            $e->getPlayer()->sendMessage(TF::RED."[MeetMate] > Nie możesz wyrzucać przedmiotów podczas przesłuchania");
+            $e->getPlayer()->sendMessage(TF::RED."[JailMate] > You cannot throw away items during the interrogation");
             $e->setCancelled(true);
            
             
@@ -197,7 +213,7 @@ public $cfg;
 
     public function onJailedBlockPlace(BlockPlaceEvent $e){
         if(in_array($e->getPlayer()->getName(), $this->deco)){
-            $e->getPlayer()->sendMessage(TF::RED."[MeetMate] > Nie możesz kłaść bloków podczas przesłuchania");
+            $e->getPlayer()->sendMessage(TF::RED."[JailMate] > You cannot put blocks during an interrogation");
             $e->setCancelled(true);
            
             
@@ -206,7 +222,7 @@ public $cfg;
 
     public function onJailedBlockBreak(BlockBreakEvent $e){
         if(in_array($e->getPlayer()->getName(), $this->deco)){
-            $e->getPlayer()->sendMessage(TF::RED."[MeetMate] > Nie możesz niszczyć bloków podczas przesłuchania");
+            $e->getPlayer()->sendMessage(TF::RED."[JailMate] > You cannot destroy blocks during an interrogation");
             $e->setCancelled(true);
            
             
@@ -215,14 +231,14 @@ public $cfg;
 
     public function onTryingPlayerBypassEvent(PlayerJoinEvent $e){
         if(in_array($e->getPlayer()->getName(), $this->deco)){
-            $e->getPlayer()->sendMessage(TF::RED."[MeetMate] > Twoje przesłuchanie nie dobiegło końca, prosze zaczekaj na administratora sprawdzającego");
+            $e->getPlayer()->sendMessage(TF::RED."[JailMate] > Your interview is not complete, please wait for the reviewing administrator");
             $conf = $this->getConfig();
             $getx = $conf->get("jail-X");
             $gety = $conf->get("jail-Y");
             $getz = $conf->get("jail-Z");
-            $level = $e->getPlayer()->getLevel();
-
-            $tp = new Position($getx, $gety, $getz, $level);
+            $level = $conf->get("world");
+            
+            $tp = new Position($getx, $gety, $getz, $this->getServer()->getLevelByName($level));
             $e->getPlayer()->teleport($tp);
            
             
