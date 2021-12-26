@@ -9,10 +9,10 @@ You need this plugin for API 4.0.3 instead? [CLICK HERE](https://github.com/J0k3
 Smart plugin that will allow you to safely check suspicious players
 
 ## Table of contents
-* [Commands](##Commands)
-* [Permissions](##Permissions)
-* [Detailed information](##Detailed_information)
-* [Social Media](##Social_media)
+* [Commands](#Commands)
+* [Permissions](#Permissions)
+* [Detailed information](#Detailed-information)
+* [Social Media](##Social-media)
 
 
 ## Commands
