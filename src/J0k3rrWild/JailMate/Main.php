@@ -48,7 +48,7 @@ public $cfg;
         $this->cfg = $this->getDataFolder() . 'players.json';
         $json = file_get_contents($this->cfg);
         $this->deco = json_decode($json, true);
-        $this->getLogger()->info(TF::GREEN."[JailMate] > Plugin and configuration have been successfully loaded");
+       
         
         
     }
