@@ -2,7 +2,7 @@
 name: JailMate
 version: 1.1.7
 main: J0k3rrWild\JailMate\Main
-api: 4.0.3
+api: 4.0.0
 website: https://github.com/J0k3rrWild/
 author: J0k3rrWild
 permissions:
