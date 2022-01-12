@@ -3,6 +3,7 @@
 You need this plugin for API 3.26.2 instead? [CLICK HERE](https://github.com/J0k3rrWild/JailMate/tree/api4)
 
 [![](https://poggit.pmmp.io/shield.state/JailMate)](https://poggit.pmmp.io/p/JailMate)
+[![](https://poggit.pmmp.io/shield.dl.total/JailMate)](https://poggit.pmmp.io/p/JailMate)
 
 ## General info
 
